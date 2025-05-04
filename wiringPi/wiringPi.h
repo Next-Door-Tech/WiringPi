@@ -175,6 +175,8 @@ struct wiringPiNodeStruct
   unsigned int data2 ;	//  ditto
   unsigned int data3 ;	//  ditto
 
+  void * dataStruct ;   // struct containing additional node-specific data
+
            void   (*pinMode)          (struct wiringPiNodeStruct *node, int pin, int mode) ;
            void   (*pullUpDnControl)  (struct wiringPiNodeStruct *node, int pin, int mode) ;
            int    (*digitalRead)      (struct wiringPiNodeStruct *node, int pin) ;
