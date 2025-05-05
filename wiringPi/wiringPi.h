@@ -323,10 +323,13 @@ extern int piHiPri (const int pri) ;
 extern void         delay             (unsigned int howLong_ms); // Wait for some number of milliseconds
 extern void         delayMicroseconds (unsigned int howLong_us); // Wait for some number of microseconds
 extern void         delayNanoseconds  (unsigned int howLong_ns); // Wait for some number of nanoseconds
-extern unsigned int millis            (void) ;
-extern unsigned int micros            (void) ;
+
+extern unsigned int millis            (void);
+extern unsigned int micros            (void);
+extern unsigned int nanos             (void);
 
 extern unsigned long long piMicros64(void);   // Interface V3.7
+extern unsigned long long piNanos64(void);
 
 #ifdef __cplusplus
 }
