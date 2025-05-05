@@ -315,8 +315,9 @@ extern int piHiPri (const int pri) ;
 
 // Extras from arduino land
 
-extern void         delay             (unsigned int howLong) ;
-extern void         delayMicroseconds (unsigned int howLong) ;
+extern void         delay             (unsigned int howLong_ms); // Wait for some number of milliseconds
+extern void         delayMicroseconds (unsigned int howLong_us); // Wait for some number of microseconds
+extern void         delayNanoseconds  (unsigned int howLong_ns); // Wait for some number of nanoseconds
 extern unsigned int millis            (void) ;
 extern unsigned int micros            (void) ;
 

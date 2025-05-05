@@ -57,6 +57,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <limits.h>
 #include <poll.h>
 #include <unistd.h>
 #include <errno.h>
@@ -2862,25 +2863,26 @@ static void initialiseEpoch (void)
 }
 
 
+// Helper functions
+static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns);
+static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow);
+
 /*
  * delay:
  *	Wait for some number of milliseconds
  *********************************************************************************
  */
 
-void delay (unsigned int howLong)
-{
-  struct timespec sleeper, dummy ;
-
-  sleeper.tv_sec  = (time_t)(howLong / 1000) ;
-  sleeper.tv_nsec = (long)(howLong % 1000) * 1000000 ;
-
-  nanosleep (&sleeper, &dummy) ;
+void delay (unsigned int howLong_ms) {
+  if (howLong_ms != 0) {
+    delayHelper(howLong_ms / 1000u, (howLong_ms % 1000u) * 1000000u);
+  }
 }
-
 
 /*
  * delayMicroseconds:
+ *	Wait for some number of microseconds
+ *********************************************************************************
  *	This is somewhat intersting. It seems that on the Pi, a single call
  *	to nanosleep takes some 80 to 130 microseconds anyway, so while
  *	obeying the standards (may take longer), it's not always what we
@@ -2897,35 +2899,82 @@ void delay (unsigned int howLong)
  *********************************************************************************
  */
 
-void delayMicrosecondsHard (unsigned int howLong)
-{
-  struct timeval tNow, tLong, tEnd ;
-
-  gettimeofday (&tNow, NULL) ;
-  tLong.tv_sec  = howLong / 1000000 ;
-  tLong.tv_usec = howLong % 1000000 ;
-  timeradd (&tNow, &tLong, &tEnd) ;
-
-  while (timercmp (&tNow, &tEnd, <))
-    gettimeofday (&tNow, NULL) ;
+void delayMicroseconds (unsigned int howLong_us) {
+  if (howLong_us != 0) {
+    delayHelper(howLong_us / 1000000u, (howLong_us % 1000000u) * 1000u);
+  }
 }
 
-void delayMicroseconds (unsigned int howLong)
-{
-  struct timespec sleeper ;
-  unsigned int uSecs = howLong % 1000000 ;
-  unsigned int wSecs = howLong / 1000000 ;
+__attribute__((__deprecated__("Use delayMicroseconds() instead."), __alias__("delayMicroseconds")))
+void delayMicrosecondsHard (unsigned int howLong_us);
 
-  /**/ if (howLong ==   0)
-    return ;
-  else if (howLong  < 100)
-    delayMicrosecondsHard (howLong) ;
-  else
-  {
-    sleeper.tv_sec  = wSecs ;
-    sleeper.tv_nsec = (long)(uSecs * 1000L) ;
-    nanosleep (&sleeper, NULL) ;
+/*
+ * delayNanoseconds:
+ *	Wait for some number of nanoseconds
+ *********************************************************************************
+ *	This is somewhat intersting. It seems that on the Pi, a single call
+ *	to nanosleep takes some 80 to 130 microseconds anyway, so while
+ *	obeying the standards (may take longer), it's not always what we
+ *	want!
+ *
+ *	So what I'll do now is if the delay is less than 100uS we'll do it
+ *	in a hard loop, watching a built-in counter on the ARM chip. This is
+ *	somewhat sub-optimal in that it uses 100% CPU, something not an issue
+ *	in a microcontroller, but under a multi-tasking, multi-user OS, it's
+ *	wastefull, however we've no real choice )-:
+ *
+ *      Plan B: It seems all might not be well with that plan, so changing it
+ *      to use gettimeofday () and poll on that instead...
+ *********************************************************************************
+ */
+
+void delayNanoseconds (unsigned int howLong_ns) {
+  if (howLong_ns != 0) {
+    delayHelper(howLong_ns / 1000000000u, howLong_ns % 1000000000u);
   }
+}
+
+
+static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns) {
+  struct timespec tsNow, tsEnd;
+
+  clock_gettime(CLOCK_MONOTONIC_RAW, &tsEnd);
+
+  tsEnd.tv_sec += howLong_s + ((tsEnd.tv_nsec + howLong_ns) / 1000000000l);
+  tsEnd.tv_nsec = (tsEnd.tv_nsec + howLong_ns) % 1000000000l;
+
+  if (howLong_s == 0 && howLong_ns < 100000l) {
+    delayHelperHard(tsEnd, tsNow);
+    return;
+  }
+
+  // Using TIMER_ABSTIME flag allows for an absolute future time to be set.
+  while (clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &tsEnd, NULL)) {
+
+    // If interrupted, check if less than 100 microseconds remain
+    clock_gettime(CLOCK_MONOTONIC_RAW, &tsNow);
+    if (((tsEnd.tv_sec - tsNow.tv_sec) * 1000000000l + (tsEnd.tv_nsec - tsNow.tv_nsec)) < 100000l) {
+      delayHelperHard(tsEnd, tsNow);
+      return;
+    }
+
+    // Otherwise, repeat clock_nanosleep until return code is 0.
+  }
+}
+
+/*
+ * delayHelperHard:
+ *  Internal helper function for delays - not externally accessible.
+ *  Uses a hard loop to wait until the system clock is past the
+ *  scheduled end time.
+ *  Appears to be precice to around ~25 ns (via limited testing on a Pi 5).
+ *********************************************************************************
+ */
+
+static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow) {
+  do {
+    clock_gettime(CLOCK_MONOTONIC_RAW, &tsNow);
+  } while ((tsNow.tv_nsec < tsEnd.tv_nsec && tsNow.tv_sec <= tsEnd.tv_sec) || tsNow.tv_sec < tsEnd.tv_sec);
 }
 
 
