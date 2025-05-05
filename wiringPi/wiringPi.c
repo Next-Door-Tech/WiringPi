@@ -434,7 +434,7 @@ const int piMemorySize [8] =
 
 // Time for easy calculations
 
-static uint64_t epochMilli, epochMicro ;
+static uint64_t epochMilli, epochMicro, epochNano ;
 
 // Misc
 
@@ -2838,31 +2838,6 @@ int wiringPiISR (int pin, int mode, void (*function)(void))
 }
 
 
-/*
- * initialiseEpoch:
- *	Initialise our start-of-time variable to be the current unix
- *	time in milliseconds and microseconds.
- *********************************************************************************
- */
-
-static void initialiseEpoch (void)
-{
-#ifdef	OLD_WAY
-  struct timeval tv ;
-
-  gettimeofday (&tv, NULL) ;
-  epochMilli = (uint64_t)tv.tv_sec * (uint64_t)1000    + (uint64_t)(tv.tv_usec / 1000) ;
-  epochMicro = (uint64_t)tv.tv_sec * (uint64_t)1000000 + (uint64_t)(tv.tv_usec) ;
-#else
-  struct timespec ts ;
-
-  clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  epochMilli = (uint64_t)ts.tv_sec * (uint64_t)1000    + (uint64_t)(ts.tv_nsec / 1000000L) ;
-  epochMicro = (uint64_t)ts.tv_sec * (uint64_t)1000000 + (uint64_t)(ts.tv_nsec /    1000L) ;
-#endif
-}
-
-
 // Helper functions
 static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns);
 static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow);
@@ -2979,28 +2954,34 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 
 
 /*
- * millis:
- *	Return a number of milliseconds as an unsigned int.
- *	Wraps at 49 days.
+ * initialiseEpoch:
+ *	Initialise our start-of-time variable to be the current unix
+ *	time in milliseconds and microseconds.
  *********************************************************************************
  */
 
-unsigned int millis (void)
-{
-  uint64_t now ;
-
-#ifdef	OLD_WAY
-  struct timeval tv ;
-
-  gettimeofday (&tv, NULL) ;
-  now  = (uint64_t)tv.tv_sec * (uint64_t)1000 + (uint64_t)(tv.tv_usec / 1000) ;
-
-#else
-  struct  timespec ts ;
+static void initialiseEpoch (void) {
+  struct timespec ts ;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  now  = (uint64_t)ts.tv_sec * (uint64_t)1000 + (uint64_t)(ts.tv_nsec / 1000000L) ;
-#endif
+  epochMilli = (uint64_t)ts.tv_sec * (uint64_t)1000       + (uint64_t)(ts.tv_nsec / 1000000L) ;
+  epochMicro = (uint64_t)ts.tv_sec * (uint64_t)1000000    + (uint64_t)(ts.tv_nsec / 1000L) ;
+  epochNano  = (uint64_t)ts.tv_sec * (uint64_t)1000000000 + (uint64_t)(ts.tv_nsec) ;
+}
+
+
+/*
+ * millis:
+ *	Return a number of milliseconds as an unsigned int.
+ *	Wraps after 49 days.
+ *********************************************************************************
+ */
+
+unsigned int millis (void) {
+  struct timespec ts ;
+
+  clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
+  uint64_t now = (uint64_t)ts.tv_sec * (uint64_t)1000 + (uint64_t)(ts.tv_nsec / 1000000L) ;
 
   return (uint32_t)(now - epochMilli) ;
 }
@@ -3013,23 +2994,30 @@ unsigned int millis (void)
  *********************************************************************************
  */
 
-unsigned int micros (void)
-{
-  uint64_t now ;
-#ifdef	OLD_WAY
-  struct timeval tv ;
-
-  gettimeofday (&tv, NULL) ;
-  now  = (uint64_t)tv.tv_sec * (uint64_t)1000000 + (uint64_t)tv.tv_usec ;
-#else
-  struct  timespec ts ;
+unsigned int micros (void) {
+  struct timespec ts ;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  now  = (uint64_t)ts.tv_sec * (uint64_t)1000000 + (uint64_t)(ts.tv_nsec / 1000) ;
-#endif
-
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000 + (uint64_t)(ts.tv_nsec / 1000L) ;
 
   return (uint32_t)(now - epochMicro) ;
+}
+
+
+/*
+ * nanos:
+ *	Return a number of nanoseconds as an unsigned int.
+ *	Wraps after 4.29 seconds.
+ *********************************************************************************
+ */
+
+unsigned int nanos (void) {
+  struct timespec ts ;
+
+  clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000000 + (uint64_t)(ts.tv_nsec) ;
+
+  return (uint32_t)(now - epochNano) ;
 }
 
 
@@ -3038,8 +3026,19 @@ unsigned long long piMicros64(void) {
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
   uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000 + (uint64_t)(ts.tv_nsec / 1000) ;
+
   return (now - epochMicro) ;
 }
+
+unsigned long long piNanos64(void) {
+  struct  timespec ts;
+
+  clock_gettime (CLOCK_MONOTONIC_RAW, &ts);
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000000 + (uint64_t)(ts.tv_nsec);
+
+  return (now - epochNano);
+}
+
 
 /*
  * wiringPiVersion:
