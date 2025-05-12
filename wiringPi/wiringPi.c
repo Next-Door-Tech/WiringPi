@@ -2943,8 +2943,9 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 
 /*
  * initialiseEpoch:
- *	Initialise our start-of-time variable to be the current unix
- *	time in milliseconds and microseconds.
+ *  Initialise our start-of-time variables to be the current unix
+ *  time in milliseconds, microseconds, and nanoseconds respectively.
+ *  Called automatically by wiringPiSetup().
  *********************************************************************************
  */
 
@@ -2960,8 +2961,8 @@ static void initialiseEpoch (void) {
 
 /*
  * millis:
- *	Return a number of milliseconds as an unsigned int.
- *	Wraps after 49 days.
+ *  Return a number of milliseconds as an unsigned int.
+ *  Wraps (via overflow) after ~49 days.
  *********************************************************************************
  */
 
@@ -2977,8 +2978,8 @@ unsigned int millis (void) {
 
 /*
  * micros:
- *	Return a number of microseconds as an unsigned int.
- *	Wraps after 71 minutes.
+ *  Return a number of microseconds as an unsigned int.
+ *  Wraps (via overflow) after ~71 minutes.
  *********************************************************************************
  */
 
@@ -2994,8 +2995,8 @@ unsigned int micros (void) {
 
 /*
  * nanos:
- *	Return a number of nanoseconds as an unsigned int.
- *	Wraps after 4.29 seconds.
+ *  Return a number of nanoseconds as an unsigned int.
+ *  Wraps (via overflow) after ~4.29 seconds.
  *********************************************************************************
  */
 
@@ -3008,6 +3009,12 @@ unsigned int nanos (void) {
   return (uint32_t)(now - epochNano) ;
 }
 
+/*
+ * piMicros64:
+ *  Return a number of microseconds as an unsigned long long int.
+ *  Wraps (via overflow) after ~584 thousand years 64-bit hardware.
+ *********************************************************************************
+ */
 
 unsigned long long piMicros64(void) {
   struct  timespec ts;
@@ -3017,6 +3024,13 @@ unsigned long long piMicros64(void) {
 
   return (now - epochMicro) ;
 }
+
+/*
+ * piNanos64:
+ *  Return a number of nanoseconds as an unsigned long long int.
+ *  Wraps (via overflow) after ~584 years on 64-bit hardware.
+ *********************************************************************************
+ */
 
 unsigned long long piNanos64(void) {
   struct  timespec ts;

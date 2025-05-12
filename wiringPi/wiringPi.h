@@ -324,11 +324,20 @@ extern void delayMicroseconds (unsigned int howLong_us);
 // Wait for some number of nanoseconds
 extern void delayNanoseconds (unsigned int howLong_ns);
 
-extern unsigned int millis            (void);
-extern unsigned int micros            (void);
-extern unsigned int nanos             (void);
+// Clock functions: return the time since wiringPiSetup() was called.
 
-extern unsigned long long piMicros64(void);   // Interface V3.7
+// Returns the elapsed time in milliseconds. Wraps after ~49 days.
+extern unsigned int millis (void);
+// Returns the elapsed time in microseconds. Wraps after ~71 minutes.
+extern unsigned int micros (void);
+// Returns the elapsed time in nanoseconds. Wraps after ~4.29 seconds.
+extern unsigned int nanos  (void);
+
+// Interface V3.7 64-bit clock functions: return the time since wiringPiSetup() was called.
+
+// Returns the elapsed time in microseconds. Wraps after ~584 thousand years on 64-bit hardware.
+extern unsigned long long piMicros64(void);
+// Returns the elapsed time in nanoseconds. Wraps after ~584 years on 64-bit hardware.
 extern unsigned long long piNanos64(void);
 
 #ifdef __cplusplus

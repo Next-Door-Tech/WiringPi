@@ -702,3 +702,30 @@ void delayNanoseconds (unsigned int howLong_ns);
 Internal implementation uses `clock_nanosleep()`, which which guarantees only that execution will resume *after* the specified amount of time has elapsed *at minimum*. There is no guarantee on the maximum length of the delay; however, any overshoot is unlikely to be longer than several microseconds in most cases, which should not be an issue except for very short delays.  
 As such, for delays under 100 microseconds an alternate method is used which generally limits overshoot to several tens of nanoseconds at the cost of occupying the CPU core at 100%.
 
+### `millis()` / `micros()` / `nanos()`
+
+Return the length of time elapsed since `wiringPiSetup()` was called (in milliseconds, microseconds, and nanoseconds, respectively). Value wraps via overflow on the specified interval for each respective function.
+
+```C
+// Returns the elapsed time in milliseconds. Wraps after ~49 days.
+unsigned int millis (void);
+
+// Returns the elapsed time in microseconds. Wraps after ~71 minutes.
+unsigned int micros (void);
+
+// Returns the elapsed time in nanoseconds. Wraps after ~4.29 seconds.
+unsigned int nanos (void);
+```
+
+
+### `piMicros64()` / `piNanos64()`
+
+Return the length of time elapsed since `wiringPiSetup()` was called (in microseconds and nanoseconds, respectively) as a 64-bit value on supported hardware.
+
+```C
+// Returns the elapsed time in microseconds. Wraps after ~584 thousand years on 64-bit hardware.
+unsigned long long int piMicros64 (void);
+
+// Returns the elapsed time in nanoseconds. Wraps after ~584 years on 64-bit hardware.
+unsigned long long int piNanos64 (void);
+```
