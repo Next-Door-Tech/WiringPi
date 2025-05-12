@@ -3125,7 +3125,7 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 
 /*
  * delay:
- *	Wait for some number of milliseconds
+ *  Wait for some number of milliseconds
  *********************************************************************************
  */
 
@@ -3137,21 +3137,7 @@ void delay (unsigned int howLong_ms) {
 
 /*
  * delayMicroseconds:
- *	Wait for some number of microseconds
- *********************************************************************************
- *	This is somewhat intersting. It seems that on the Pi, a single call
- *	to nanosleep takes some 80 to 130 microseconds anyway, so while
- *	obeying the standards (may take longer), it's not always what we
- *	want!
- *
- *	So what I'll do now is if the delay is less than 100uS we'll do it
- *	in a hard loop, watching a built-in counter on the ARM chip. This is
- *	somewhat sub-optimal in that it uses 100% CPU, something not an issue
- *	in a microcontroller, but under a multi-tasking, multi-user OS, it's
- *	wastefull, however we've no real choice )-:
- *
- *      Plan B: It seems all might not be well with that plan, so changing it
- *      to use gettimeofday () and poll on that instead...
+ *  Wait for some number of microseconds
  *********************************************************************************
  */
 
@@ -3166,21 +3152,7 @@ void delayMicrosecondsHard (unsigned int howLong_us);
 
 /*
  * delayNanoseconds:
- *	Wait for some number of nanoseconds
- *********************************************************************************
- *	This is somewhat intersting. It seems that on the Pi, a single call
- *	to nanosleep takes some 80 to 130 microseconds anyway, so while
- *	obeying the standards (may take longer), it's not always what we
- *	want!
- *
- *	So what I'll do now is if the delay is less than 100uS we'll do it
- *	in a hard loop, watching a built-in counter on the ARM chip. This is
- *	somewhat sub-optimal in that it uses 100% CPU, something not an issue
- *	in a microcontroller, but under a multi-tasking, multi-user OS, it's
- *	wastefull, however we've no real choice )-:
- *
- *      Plan B: It seems all might not be well with that plan, so changing it
- *      to use gettimeofday () and poll on that instead...
+ *  Wait for some number of nanoseconds
  *********************************************************************************
  */
 
@@ -3190,6 +3162,22 @@ void delayNanoseconds (unsigned int howLong_ns) {
   }
 }
 
+/*
+ * delayHelper:
+ *  Internal helper function for delays - not externally accessible.
+ *********************************************************************************
+ *  This is somewhat intersting. It seems that on the Pi, a single call
+ *  to nanosleep takes some 80 to 130 microseconds anyway, so while
+ *  obeying the standards (may take longer), it's not always what we
+ *  want!
+ *
+ *  So what I'll do now is if the delay is less than 100uS we'll do it
+ *  in a hard loop, comparing the current time against the scheduled end.
+ *  This is somewhat sub-optimal in that it uses 100% CPU, something not an
+ *  issue in a microcontroller, but under a multi-tasking, multi-user OS, it's
+ *  wasteful, however we've no real choice )-:
+ *********************************************************************************
+ */
 
 static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns) {
   struct timespec tsNow, tsEnd;

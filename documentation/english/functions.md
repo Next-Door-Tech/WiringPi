@@ -894,3 +894,30 @@ int fd_spi = wiringPiSPIGetFd(spiChannel);
 
 wiringPiSPIClose(spiChannel);
 ```
+
+## Utility Functions
+
+### `delay()` / `delayMicroseconds()` / `delayNanoseconds()`
+
+Resume execution only after the specified amount of time has elapsed.
+
+>>>
+```C
+// Wait for some number of milliseconds
+void delay (unsigned int howLong_ms);
+
+// Wait for some number of microseconds
+void delayMicroseconds (unsigned int howLong_us);
+
+// Wait for some number of nanoseconds
+void delayNanoseconds (unsigned int howLong_ns);
+```
+
+``howLong_ms``: Length of time (in milliseconds) to delay.  
+``howLong_us``: Length of time (in microseconds) to delay.  
+``howLong_ns``: Length of time (in nanoseconds) to delay.  
+
+**Note**:  
+Internal implementation uses `clock_nanosleep()`, which which guarantees only that execution will resume *after* the specified amount of time has elapsed *at minimum*. There is no guarantee on the maximum length of the delay; however, any overshoot is unlikely to be longer than several microseconds in most cases, which should not be an issue except for very short delays.  
+As such, for delays under 100 microseconds an alternate method is used which generally limits overshoot to several tens of nanoseconds at the cost of occupying the CPU core at 100%.
+
