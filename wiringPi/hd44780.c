@@ -368,11 +368,6 @@ static int hd44780DigitalRead_8(struct wiringPiNodeStruct *node, int pin) {
         pinMode(nodeData->pinDB[i], OUTPUT);
     }
 
-    if (pin == node->pinBase) {
-
-    }
-
-
     return data;
 
 }
