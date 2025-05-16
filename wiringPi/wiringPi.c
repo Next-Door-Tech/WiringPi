@@ -3123,6 +3123,13 @@ int wiringPiISR2(int pin, int edgeMode, void (*function)(struct WPIWfiStatus wfi
 static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns);
 static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow);
 
+// Unit conversion ratios (for readability)
+const long ms_sec = 1000l;        // 1e3 milliseconds per second
+const long us_sec = 1000000l;     // 1e6 microseconds per second
+const long ns_sec = 1000000000l;  // 1e9 nanoseconds per second
+const long ns_ms  = 1000000l;     // 1e6 nanoseconds per millisecond
+const long ns_us  = 1000l;        // 1e3 nanoseconds per microsecond
+
 /*
  * delay:
  *  Wait for some number of milliseconds
@@ -3131,7 +3138,7 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 
 void delay (unsigned int howLong_ms) {
   if (howLong_ms != 0) {
-    delayHelper(howLong_ms / 1000u, (howLong_ms % 1000u) * 1000000u);
+    delayHelper(howLong_ms / ms_sec, (howLong_ms % ms_sec) * ns_ms);
   }
 }
 
@@ -3143,11 +3150,11 @@ void delay (unsigned int howLong_ms) {
 
 void delayMicroseconds (unsigned int howLong_us) {
   if (howLong_us != 0) {
-    delayHelper(howLong_us / 1000000u, (howLong_us % 1000000u) * 1000u);
+    delayHelper(howLong_us / us_sec, (howLong_us % us_sec) * ns_us);
   }
 }
 
-__attribute__((__deprecated__("Use delayMicroseconds() instead."), __alias__("delayMicroseconds")))
+__attribute__((deprecated("Use delayMicroseconds() instead."), alias("delayMicroseconds")))
 void delayMicrosecondsHard (unsigned int howLong_us);
 
 /*
@@ -3158,7 +3165,7 @@ void delayMicrosecondsHard (unsigned int howLong_us);
 
 void delayNanoseconds (unsigned int howLong_ns) {
   if (howLong_ns != 0) {
-    delayHelper(howLong_ns / 1000000000u, howLong_ns % 1000000000u);
+    delayHelper(howLong_ns / ns_sec, howLong_ns % ns_sec);
   }
 }
 
@@ -3184,10 +3191,10 @@ static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns
 
   clock_gettime(CLOCK_MONOTONIC_RAW, &tsEnd);
 
-  tsEnd.tv_sec += howLong_s + ((tsEnd.tv_nsec + howLong_ns) / 1000000000l);
-  tsEnd.tv_nsec = (tsEnd.tv_nsec + howLong_ns) % 1000000000l;
+  tsEnd.tv_sec += howLong_s + ((tsEnd.tv_nsec + howLong_ns) / ns_sec);
+  tsEnd.tv_nsec = (tsEnd.tv_nsec + howLong_ns) % ns_sec;
 
-  if (howLong_s == 0 && howLong_ns < 100000l) {
+  if (howLong_s == 0 && howLong_ns < 100*ns_us) { // if delay is less than 100 us
     delayHelperHard(tsEnd, tsNow);
     return;
   }
@@ -3197,7 +3204,7 @@ static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns
 
     // If interrupted, check if less than 100 microseconds remain
     clock_gettime(CLOCK_MONOTONIC_RAW, &tsNow);
-    if (((tsEnd.tv_sec - tsNow.tv_sec) * 1000000000l + (tsEnd.tv_nsec - tsNow.tv_nsec)) < 100000l) {
+    if (((tsEnd.tv_sec - tsNow.tv_sec) * ns_sec + (tsEnd.tv_nsec - tsNow.tv_nsec)) < 100*ns_us) { // if time remaining is less than 100 us
       delayHelperHard(tsEnd, tsNow);
       return;
     }
@@ -3234,9 +3241,9 @@ static void initialiseEpoch (void) {
   struct timespec ts ;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  epochMilli = (uint64_t)ts.tv_sec * (uint64_t)1000       + (uint64_t)(ts.tv_nsec / 1000000L) ;
-  epochMicro = (uint64_t)ts.tv_sec * (uint64_t)1000000    + (uint64_t)(ts.tv_nsec / 1000L) ;
-  epochNano  = (uint64_t)ts.tv_sec * (uint64_t)1000000000 + (uint64_t)(ts.tv_nsec) ;
+  epochMilli = (uint64_t)ts.tv_sec * (uint64_t)ms_sec + (uint64_t)(ts.tv_nsec / ms_sec) ;
+  epochMicro = (uint64_t)ts.tv_sec * (uint64_t)us_sec + (uint64_t)(ts.tv_nsec / ms_sec) ;
+  epochNano  = (uint64_t)ts.tv_sec * (uint64_t)ns_sec + (uint64_t)(ts.tv_nsec) ;
 }
 
 
@@ -3251,7 +3258,7 @@ unsigned int millis (void) {
   struct timespec ts ;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  uint64_t now = (uint64_t)ts.tv_sec * (uint64_t)1000 + (uint64_t)(ts.tv_nsec / 1000000L) ;
+  uint64_t now = (uint64_t)ts.tv_sec * (uint64_t)ms_sec + (uint64_t)(ts.tv_nsec / ns_ms) ;
 
   return (uint32_t)(now - epochMilli) ;
 }
@@ -3268,7 +3275,7 @@ unsigned int micros (void) {
   struct timespec ts ;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000 + (uint64_t)(ts.tv_nsec / 1000L) ;
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)us_sec + (uint64_t)(ts.tv_nsec / ns_us) ;
 
   return (uint32_t)(now - epochMicro) ;
 }
@@ -3285,7 +3292,7 @@ unsigned int nanos (void) {
   struct timespec ts ;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000000 + (uint64_t)(ts.tv_nsec) ;
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)ns_sec + (uint64_t)(ts.tv_nsec) ;
 
   return (uint32_t)(now - epochNano) ;
 }
@@ -3301,7 +3308,7 @@ unsigned long long piMicros64(void) {
   struct  timespec ts;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts) ;
-  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000 + (uint64_t)(ts.tv_nsec / 1000) ;
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)us_sec + (uint64_t)(ts.tv_nsec / ns_us) ;
 
   return (now - epochMicro) ;
 }
@@ -3317,7 +3324,7 @@ unsigned long long piNanos64(void) {
   struct  timespec ts;
 
   clock_gettime (CLOCK_MONOTONIC_RAW, &ts);
-  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)1000000000 + (uint64_t)(ts.tv_nsec);
+  uint64_t now  = (uint64_t)ts.tv_sec * (uint64_t)ns_sec + (uint64_t)(ts.tv_nsec);
 
   return (now - epochNano);
 }
