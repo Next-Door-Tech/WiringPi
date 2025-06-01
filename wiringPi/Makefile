@@ -34,8 +34,8 @@ endif
 STATIC=libwiringPi.a
 DYNAMIC=libwiringPi.so.$(VERSION)
 
-#DEBUG	= -g -O0
-DEBUG	= -O2
+DEBUG	= -ggdb3 -O3
+#DEBUG	= -O2
 CC	?= gcc
 INCLUDE	= -I.
 DEFS	= -D_GNU_SOURCE
