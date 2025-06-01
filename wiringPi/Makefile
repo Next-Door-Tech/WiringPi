@@ -59,6 +59,7 @@ SRC	=	wiringPi.c						\
 		max31855.c max5322.c ads1115.c				\
 		sn3218.c						\
 		bmp180.c htu21d.c ds18b20.c rht03.c			\
+		hd44780.c						\
 		drcSerial.c drcNet.c					\
 		pseudoPins.c						\
 		wpiExtensions.c						\
@@ -163,6 +164,7 @@ sn3218.o: wiringPi.h wiringPiI2C.h sn3218.h
 bmp180.o: wiringPi.h wiringPiI2C.h bmp180.h
 htu21d.o: wiringPi.h wiringPiI2C.h htu21d.h
 ds18b20.o: wiringPi.h ds18b20.h
+hd44780.o: wiringPi.h hd44780.h
 drcSerial.o: wiringPi.h wiringSerial.h drcSerial.h
 pseudoPins.o: wiringPi.h pseudoPins.h
 wpiExtensions.o: wiringPi.h mcp23008.h mcp23016.h mcp23017.h mcp23s08.h
