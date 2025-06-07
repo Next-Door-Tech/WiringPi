@@ -3326,8 +3326,7 @@ int CheckPCIeFileContent(const char* pcieaddress, const char* filename, const ch
 }
 
 
-void GetRP1Memory() {
-
+void GetRP1Memory(void) {
     pciemem_RP1[0] = '\0';
     DIR *dir = opendir(pcie_path);
     struct dirent *entry;
@@ -3360,7 +3359,7 @@ int wiringPiGlobalMemoryAccess(void)
 
   piBoard();
   if (piRP1Model()) {
-    GetRP1Memory(pciemem_RP1, sizeof(pciemem_RP1));
+    GetRP1Memory();
     gpiomemGlobal = pciemem_RP1;
     MMAP_size = pciemem_RP1_Size;
     BaseAddr  = 0x00000000;
