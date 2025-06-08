@@ -329,7 +329,11 @@ extern void delayMicroseconds (unsigned int us);
 // Wait for some number of nanoseconds
 extern void delayNanoseconds (unsigned int ns);
 
+// Old version of delay, retained for compatibility
+__attribute__((__deprecated__("Use delay() instead.")))
 extern void delayOld(unsigned int ms);
+// Old version of delayMicroseconds, retained for compatibility
+__attribute__((__deprecated__("Use delayMicroseconds() instead.")))
 extern void delayMicrosecondsOld(unsigned int us);
 
 // Clock functions: return the time since wiringPiSetup() was called.

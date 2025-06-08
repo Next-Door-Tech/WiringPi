@@ -3232,6 +3232,7 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 
 /// OLD TIME FUNCTIONS ///
 
+__attribute__((deprecated("Use delay() instead.")))
 void delayOld(unsigned int ms)
 {
   struct timespec sleeper, dummy ;
@@ -3243,6 +3244,7 @@ void delayOld(unsigned int ms)
 }
 
 
+__attribute__((deprecated("Use delayHelperHard() instead.")))
 void delayMicrosecondsHardOld(unsigned int us)
 {
   struct timeval tNow, tLong, tEnd ;
@@ -3257,6 +3259,7 @@ void delayMicrosecondsHardOld(unsigned int us)
 }
 
 
+__attribute__((deprecated("Use delayMicroseconds() instead.")))
 void delayMicrosecondsOld(unsigned int us)
 {
   struct timespec sleeper ;
