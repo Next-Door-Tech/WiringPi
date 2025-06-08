@@ -3136,9 +3136,9 @@ const long ns_us  = 1000l;        // 1e3 nanoseconds per microsecond
  *********************************************************************************
  */
 
-void delay (unsigned int howLong_ms) {
-  if (howLong_ms != 0) {
-    delayHelper(howLong_ms / ms_sec, (howLong_ms % ms_sec) * ns_ms);
+void delay (unsigned int ms) {
+  if (ms != 0) {
+    delayHelper(ms / ms_sec, (ms % ms_sec) * ns_ms);
   }
 }
 
@@ -3148,14 +3148,16 @@ void delay (unsigned int howLong_ms) {
  *********************************************************************************
  */
 
-void delayMicroseconds (unsigned int howLong_us) {
-  if (howLong_us != 0) {
-    delayHelper(howLong_us / us_sec, (howLong_us % us_sec) * ns_us);
+void delayMicroseconds (unsigned int us) {
+  if (us != 0) {
+    delayHelper(us / us_sec, (us % us_sec) * ns_us);
   }
 }
 
+
 __attribute__((deprecated("Use delayMicroseconds() instead."), alias("delayMicroseconds")))
 void delayMicrosecondsHard (unsigned int howLong_us);
+
 
 /*
  * delayNanoseconds:
@@ -3163,9 +3165,9 @@ void delayMicrosecondsHard (unsigned int howLong_us);
  *********************************************************************************
  */
 
-void delayNanoseconds (unsigned int howLong_ns) {
-  if (howLong_ns != 0) {
-    delayHelper(howLong_ns / ns_sec, howLong_ns % ns_sec);
+void delayNanoseconds (unsigned int ns) {
+  if (ns != 0) {
+    delayHelper(ns / ns_sec, ns % ns_sec);
   }
 }
 
@@ -3228,6 +3230,50 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
   } while ((tsNow.tv_nsec < tsEnd.tv_nsec && tsNow.tv_sec <= tsEnd.tv_sec) || tsNow.tv_sec < tsEnd.tv_sec);
 }
 
+/// OLD TIME FUNCTIONS ///
+
+void delayOld(unsigned int ms)
+{
+  struct timespec sleeper, dummy ;
+
+  sleeper.tv_sec  = (time_t)(ms / 1000) ;
+  sleeper.tv_nsec = (long)(ms % 1000) * 1000000 ;
+
+  nanosleep (&sleeper, &dummy) ;
+}
+
+
+void delayMicrosecondsHardOld(unsigned int us)
+{
+  struct timeval tNow, tLong, tEnd ;
+
+  gettimeofday (&tNow, NULL) ;
+  tLong.tv_sec  = us / 1000000 ;
+  tLong.tv_usec = us % 1000000 ;
+  timeradd (&tNow, &tLong, &tEnd) ;
+
+  while (timercmp (&tNow, &tEnd, <))
+    gettimeofday (&tNow, NULL) ;
+}
+
+
+void delayMicrosecondsOld(unsigned int us)
+{
+  struct timespec sleeper ;
+  unsigned int uSecs = us % 1000000 ;
+  unsigned int wSecs = us / 1000000 ;
+
+  if      (us ==   0)
+    return ;
+  else if (us  < 100)
+    delayMicrosecondsHardOld(us) ;
+  else
+  {
+    sleeper.tv_sec  = wSecs ;
+    sleeper.tv_nsec = (long)(uSecs * 1000L) ;
+    nanosleep (&sleeper, NULL) ;
+  }
+}
 
 /*
  * initialiseEpoch:
