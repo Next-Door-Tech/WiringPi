@@ -3233,8 +3233,7 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 /// OLD TIME FUNCTIONS ///
 
 __attribute__((deprecated("Use delay() instead.")))
-void delayOld(unsigned int msec)
-{
+void delayOld(unsigned int msec) {
   struct timespec sleeper, dummy ;
 
   sleeper.tv_sec  = (time_t)(msec / 1000) ;
@@ -3245,8 +3244,7 @@ void delayOld(unsigned int msec)
 
 
 __attribute__((deprecated("Use delayHelperHard() instead.")))
-void delayMicrosecondsHardOld(unsigned int usec)
-{
+void delayMicrosecondsHardOld(unsigned int usec) {
   struct timeval tNow, tLong, tEnd ;
 
   gettimeofday (&tNow, NULL) ;
@@ -3260,8 +3258,7 @@ void delayMicrosecondsHardOld(unsigned int usec)
 
 
 __attribute__((deprecated("Use delayMicroseconds() instead.")))
-void delayMicrosecondsOld(unsigned int usec)
-{
+void delayMicrosecondsOld(unsigned int usec) {
   struct timespec sleeper ;
   unsigned int uSecs = usec % 1000000 ;
   unsigned int wSecs = usec / 1000000 ;
