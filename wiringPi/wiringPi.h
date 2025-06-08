@@ -331,7 +331,6 @@ extern void delayNanoseconds (unsigned int ns);
 
 extern void delayOld(unsigned int ms);
 extern void delayMicrosecondsOld(unsigned int us);
-extern void delayNanosecondsOld(unsigned int ns);
 
 // Clock functions: return the time since wiringPiSetup() was called.
 
