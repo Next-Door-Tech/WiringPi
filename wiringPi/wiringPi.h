@@ -323,18 +323,18 @@ extern int piHiPri (const int pri) ;
 // Delay functions: sleep until the specified interval has expired.
 
 // Wait for some number of milliseconds
-extern void delay (unsigned int ms);
+extern void delay (unsigned int msec);
 // Wait for some number of microseconds
-extern void delayMicroseconds (unsigned int us);
+extern void delayMicroseconds (unsigned int usec);
 // Wait for some number of nanoseconds
-extern void delayNanoseconds (unsigned int ns);
+extern void delayNanoseconds (unsigned int nsec);
 
 // Old version of delay, retained for compatibility
 __attribute__((__deprecated__("Use delay() instead.")))
-extern void delayOld(unsigned int ms);
+extern void delayOld(unsigned int msec);
 // Old version of delayMicroseconds, retained for compatibility
 __attribute__((__deprecated__("Use delayMicroseconds() instead.")))
-extern void delayMicrosecondsOld(unsigned int us);
+extern void delayMicrosecondsOld(unsigned int usec);
 
 // Clock functions: return the time since wiringPiSetup() was called.
 
