@@ -3120,7 +3120,7 @@ int wiringPiISR2(int pin, int edgeMode, void (*function)(struct WPIWfiStatus wfi
 }
 
 // Helper functions
-static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns);
+static inline void delayHelper(unsigned long sec, unsigned long nsec);
 static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow);
 
 // Unit conversion ratios (for readability)
@@ -3136,9 +3136,9 @@ const long ns_us  = 1000l;        // 1e3 nanoseconds per microsecond
  *********************************************************************************
  */
 
-void delay (unsigned int ms) {
-  if (ms != 0) {
-    delayHelper(ms / ms_sec, (ms % ms_sec) * ns_ms);
+void delay (unsigned int msec) {
+  if (msec != 0) {
+    delayHelper(msec / ms_sec, (msec % ms_sec) * ns_ms);
   }
 }
 
@@ -3148,15 +3148,15 @@ void delay (unsigned int ms) {
  *********************************************************************************
  */
 
-void delayMicroseconds (unsigned int us) {
-  if (us != 0) {
-    delayHelper(us / us_sec, (us % us_sec) * ns_us);
+void delayMicroseconds (unsigned int usec) {
+  if (usec != 0) {
+    delayHelper(usec / us_sec, (usec % us_sec) * ns_us);
   }
 }
 
 
 __attribute__((deprecated("Use delayMicroseconds() instead."), alias("delayMicroseconds")))
-void delayMicrosecondsHard (unsigned int howLong_us);
+void delayMicrosecondsHard (unsigned int usec);
 
 
 /*
@@ -3165,9 +3165,9 @@ void delayMicrosecondsHard (unsigned int howLong_us);
  *********************************************************************************
  */
 
-void delayNanoseconds (unsigned int ns) {
-  if (ns != 0) {
-    delayHelper(ns / ns_sec, ns % ns_sec);
+void delayNanoseconds (unsigned int nsec) {
+  if (nsec != 0) {
+    delayHelper(nsec / ns_sec, nsec % ns_sec);
   }
 }
 
@@ -3188,15 +3188,15 @@ void delayNanoseconds (unsigned int ns) {
  *********************************************************************************
  */
 
-static inline void delayHelper(unsigned long howLong_s, unsigned long howLong_ns) {
+static inline void delayHelper(unsigned long sec, unsigned long nsec) {
   struct timespec tsNow, tsEnd;
 
   clock_gettime(CLOCK_MONOTONIC_RAW, &tsEnd);
 
-  tsEnd.tv_sec += howLong_s + ((tsEnd.tv_nsec + howLong_ns) / ns_sec);
-  tsEnd.tv_nsec = (tsEnd.tv_nsec + howLong_ns) % ns_sec;
+  tsEnd.tv_sec += sec + ((tsEnd.tv_nsec + nsec) / ns_sec);
+  tsEnd.tv_nsec = (tsEnd.tv_nsec + nsec) % ns_sec;
 
-  if (howLong_s == 0 && howLong_ns < 100*ns_us) { // if delay is less than 100 us
+  if (sec == 0 && nsec < 100*ns_us) { // if delay is less than 100 us
     delayHelperHard(tsEnd, tsNow);
     return;
   }
@@ -3232,24 +3232,24 @@ static inline void delayHelperHard(struct timespec tsEnd, struct timespec tsNow)
 
 /// OLD TIME FUNCTIONS ///
 
-void delayOld(unsigned int ms)
-{
+__attribute__((deprecated("Use delay() instead.")))
+void delayOld(unsigned int msec) {
   struct timespec sleeper, dummy ;
 
-  sleeper.tv_sec  = (time_t)(ms / 1000) ;
-  sleeper.tv_nsec = (long)(ms % 1000) * 1000000 ;
+  sleeper.tv_sec  = (time_t)(msec / 1000) ;
+  sleeper.tv_nsec = (long)(msec % 1000) * 1000000 ;
 
   nanosleep (&sleeper, &dummy) ;
 }
 
 
-void delayMicrosecondsHardOld(unsigned int us)
-{
+__attribute__((deprecated("Use delayHelperHard() instead.")))
+void delayMicrosecondsHardOld(unsigned int usec) {
   struct timeval tNow, tLong, tEnd ;
 
   gettimeofday (&tNow, NULL) ;
-  tLong.tv_sec  = us / 1000000 ;
-  tLong.tv_usec = us % 1000000 ;
+  tLong.tv_sec  = usec / 1000000 ;
+  tLong.tv_usec = usec % 1000000 ;
   timeradd (&tNow, &tLong, &tEnd) ;
 
   while (timercmp (&tNow, &tEnd, <))
@@ -3257,16 +3257,16 @@ void delayMicrosecondsHardOld(unsigned int us)
 }
 
 
-void delayMicrosecondsOld(unsigned int us)
-{
+__attribute__((deprecated("Use delayMicroseconds() instead.")))
+void delayMicrosecondsOld(unsigned int usec) {
   struct timespec sleeper ;
-  unsigned int uSecs = us % 1000000 ;
-  unsigned int wSecs = us / 1000000 ;
+  unsigned int uSecs = usec % 1000000 ;
+  unsigned int wSecs = usec / 1000000 ;
 
-  if      (us ==   0)
+  if      (usec ==   0)
     return ;
-  else if (us  < 100)
-    delayMicrosecondsHardOld(us) ;
+  else if (usec  < 100)
+    delayMicrosecondsHardOld(usec) ;
   else
   {
     sleeper.tv_sec  = wSecs ;
