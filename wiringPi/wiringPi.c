@@ -55,6 +55,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
@@ -252,8 +253,8 @@ static volatile unsigned int GPIO_RIO ;
 #define	PAGE_SIZE		(4*1024)
 #define	BLOCK_SIZE		(4*1024)
 
-static unsigned int usingGpioMem    = FALSE ;
-static          int wiringPiSetuped = FALSE ;
+static unsigned int usingGpioMem    = false ;
+static          int wiringPiSetuped = false ;
 
 // PWM
 //	Word offsets into the PWM control region
@@ -448,12 +449,12 @@ static int RaspberryPiLayout = -1;
 
 // Debugging & Return codes
 
-int wiringPiDebug       = FALSE ;
-int wiringPiReturnCodes = FALSE ;
+int wiringPiDebug       = false ;
+int wiringPiReturnCodes = false ;
 
 // Use /dev/gpiomem ?
 
-int wiringPiTryGpioMem  = FALSE ;
+int wiringPiTryGpioMem  = false ;
 
 enum WPIFlag {
   WPI_FLAG_INPUT    = 0x04,
@@ -3525,13 +3526,13 @@ int wiringPiSetup (void)
   if (wiringPiSetuped)
     return 0 ;
 
-  wiringPiSetuped = TRUE ;
+  wiringPiSetuped = true ;
 
   if (getenv (ENV_DEBUG) != NULL)
-    wiringPiDebug = TRUE ;
+    wiringPiDebug = true ;
 
   if (getenv (ENV_CODES) != NULL)
-    wiringPiReturnCodes = TRUE ;
+    wiringPiReturnCodes = true ;
 
   if (wiringPiDebug)
     printf ("wiringPi: wiringPiSetup called\n") ;
@@ -3587,7 +3588,7 @@ int wiringPiSetup (void)
     gpioToPwmPort[19] = 3;
   }
 
-  usingGpioMem = FALSE;
+  usingGpioMem = false;
   if (gpiomemGlobal==NULL || (fd = open (gpiomemGlobal, O_RDWR | O_SYNC | O_CLOEXEC)) < 0)
   {
     if (wiringPiDebug) {
@@ -3596,7 +3597,7 @@ int wiringPiSetup (void)
     if (gpiomemModule && (fd = open (gpiomemModule, O_RDWR | O_SYNC | O_CLOEXEC) ) >= 0)	// We're using gpiomem
     {
       piGpioBase   = 0 ;
-      usingGpioMem = TRUE ;
+      usingGpioMem = true ;
     }
     else
       return wiringPiFailure (WPI_ALMOST, "wiringPiSetup: Unable to open %s or %s: %s.\n"
@@ -3780,15 +3781,15 @@ int wiringPiSetupGpioDevice (enum WPIPinType pinType) {
     printf ("wiringPi: wiringPiSetupGpioDevice(%d) called\n", (int)pinType) ;
   }
   if (getenv (ENV_DEBUG) != NULL)
-    wiringPiDebug = TRUE ;
+    wiringPiDebug = true ;
 
   if (getenv (ENV_CODES) != NULL)
-    wiringPiReturnCodes = TRUE ;
+    wiringPiReturnCodes = true ;
 
   if (wiringPiGpioDeviceGetFd()<0) {
     return -1;
   }
-  wiringPiSetuped = TRUE ;
+  wiringPiSetuped = true ;
 
   if (piGpioLayout () == GPIO_LAYOUT_PI1_REV1){
     pinToGpio  = pinToGpioR1 ;
@@ -3811,7 +3812,7 @@ int wiringPiSetupGpioDevice (enum WPIPinType pinType) {
       wiringPiMode = WPI_MODE_GPIO_DEVICE_PHYS;
       break;
     default:
-      wiringPiSetuped = FALSE;
+      wiringPiSetuped = false;
       return -1;
   }
 
