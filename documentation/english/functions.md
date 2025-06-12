@@ -921,6 +921,32 @@ extern void delayNanoseconds (unsigned int nsec);
 Internal implementation uses `clock_nanosleep()`, which which guarantees only that execution will resume *after* the specified amount of time has elapsed *at minimum*. There is no guarantee on the maximum length of the delay; however, any overshoot is unlikely to be longer than several microseconds in most cases, which should not be an issue except for very short delays.
 As such, for delays under 100 microseconds an alternate method is used which generally limits overshoot to several tens of nanoseconds at the cost of occupying the CPU core at 100%.
 
+### `delayNI()` / `delayMicrosecondsNI()` / `delayNanosecondsNI()`
+
+Non-interruptable versions of the `delay()` function family.
+
+Resume execution after the specified amount of time has elapsed. Sleep will resume if an interrupt signal is received from the system after the appropriate interrupt handler has been called.
+
+>>>
+```C
+// Wait for some number of milliseconds.
+extern void delayNI (unsigned int msec);
+
+// Wait for some number of microseconds.
+extern void delayMicrosecondsNI (unsigned int usec);
+
+// Wait for some number of nanoseconds.
+extern void delayNanosecondsNI (unsigned int nsec);
+```
+
+``msec``: Length of time (in milliseconds) to delay.
+``usec``: Length of time (in microseconds) to delay.
+``nsec``: Length of time (in nanoseconds) to delay.
+
+**Note**:  
+Internal implementation uses `clock_nanosleep()`, which which guarantees only that execution will resume *after* the specified amount of time has elapsed *at minimum*. There is no guarantee on the maximum length of the delay; however, any overshoot is unlikely to be longer than several microseconds in most cases, which should not be an issue except for very short delays.
+As such, for delays under 100 microseconds an alternate method is used which generally limits overshoot to several tens of nanoseconds at the cost of occupying the CPU core at 100%.
+
 ### `millis()` / `micros()` / `nanos()`
 
 Return the length of time elapsed since `wiringPiSetup()` was called (in milliseconds, microseconds, and nanoseconds, respectively). Value wraps via overflow on the specified interval for each respective function.
