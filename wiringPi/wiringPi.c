@@ -1591,7 +1591,7 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
 
       pwm[PWM0_RANGE] = range ; delayMicroseconds (10) ;
       pwm[PWM1_RANGE] = range ; delayMicroseconds (10) ;
-      readback = pwm[PWM0_RANGE];
+      readback = pwm[PWM0_RANGE] ;
 
     }
 
