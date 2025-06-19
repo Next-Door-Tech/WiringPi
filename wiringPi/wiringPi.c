@@ -178,6 +178,26 @@ const unsigned int RP1_PAD_IC_DEFAULT_FROM9 = 0x96; //pull-down, Schmitt
 const unsigned int RP1_PAD_DRIVE_MASK   = 0x00000030;
 const unsigned int RP1_INV_PAD_DRIVE_MASK = ~(RP1_PAD_DRIVE_MASK);
 
+struct [[gnu::packed]] RP1_PWM_struct {
+  volatile uint32_t GLOBAL_CTRL;
+  volatile uint32_t FIFO_CTRL;
+  volatile uint32_t COMMON_RANGE;
+  volatile uint32_t COMMON_DUTY;
+  volatile uint32_t DUTY_FIFO;
+  struct RP1_PWM_CHAN {
+    volatile uint32_t CTRL;
+    volatile uint32_t RANGE;
+    volatile uint32_t PHASE;
+    volatile uint32_t DUTY;
+  } CHAN[4];
+  volatile uint32_t INTR;
+  volatile uint32_t INTE;
+  volatile uint32_t INTF;
+  volatile uint32_t INTS;
+};
+
+#define RP1_PWM ((struct RP1_PWM_struct *)pwm)
+
 const unsigned int RP1_PWM0_GLOBAL_CTRL  = 0;
 const unsigned int RP1_PWM0_FIFO_CTRL    = 1;
 const unsigned int RP1_PWM0_COMMON_RANGE = 2;
@@ -1559,11 +1579,8 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
         return;
       }
 
-      pwm[RP1_PWM0_CHAN0_RANGE] = range;
-      pwm[RP1_PWM0_CHAN1_RANGE] = range;
-      pwm[RP1_PWM0_CHAN2_RANGE] = range;
-      pwm[RP1_PWM0_CHAN3_RANGE] = range;
-      readback = pwm[RP1_PWM0_CHAN0_RANGE];
+      RP1_PWM->CHAN[channel].RANGE = range;
+      readback = RP1_PWM->CHAN[channel].RANGE;
 
     } else {
 
