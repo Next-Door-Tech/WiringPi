@@ -1534,11 +1534,11 @@ void pwmSetRange (unsigned int range) {
     int readback = 0x00;
 
     if (piRP1Model()) {
-      pwm[RP1_PWM0_CHAN0_RANGE] = range;
-      pwm[RP1_PWM0_CHAN1_RANGE] = range;
-      pwm[RP1_PWM0_CHAN2_RANGE] = range;
-      pwm[RP1_PWM0_CHAN3_RANGE] = range;
-      readback = pwm[RP1_PWM0_CHAN0_RANGE];
+
+      for (size_t i = 0; i < 4; ++i) {
+        RP1_PWM->CHAN[i].RANGE = range;
+      }
+      readback = RP1_PWM->CHAN[0].RANGE;
     } else {
       pwm[PWM0_RANGE] = range ; delayMicroseconds (10) ;
       pwm[PWM1_RANGE] = range ; delayMicroseconds (10) ;
