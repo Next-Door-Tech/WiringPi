@@ -1626,11 +1626,17 @@ void pwmSetRange (unsigned int range) {
       for (size_t i = 0; i < 4; ++i) {
         RP1_PWM->CHAN[i].RANGE = range;
       }
+
       readback = RP1_PWM->CHAN[0].RANGE;
+
     } else {
-      pwm[PWM0_RANGE] = range ; delayMicroseconds (10) ;
-      pwm[PWM1_RANGE] = range ; delayMicroseconds (10) ;
+
+      pwm[PWM0_RANGE] = range;
+      delayMicroseconds (10);
+      pwm[PWM1_RANGE] = range;
+      delayMicroseconds (10);
       readback = pwm[PWM0_RANGE];
+
     }
 
     if (wiringPiDebug) {
@@ -1667,6 +1673,7 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
         return;
       }
 
+      RP1_PWM->CHAN[channel].CTRL_FIELD.BIND = false;
       RP1_PWM->CHAN[channel].RANGE = range;
       readback = RP1_PWM->CHAN[channel].RANGE;
 
@@ -1677,9 +1684,11 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
         return;
       }
 
-      pwm[PWM0_RANGE] = range ; delayMicroseconds (10) ;
-      pwm[PWM1_RANGE] = range ; delayMicroseconds (10) ;
-      readback = pwm[PWM0_RANGE] ;
+      pwm[PWM0_RANGE] = range;
+      delayMicroseconds(10);
+      pwm[PWM1_RANGE] = range;
+      delayMicroseconds(10);
+      readback = pwm[PWM0_RANGE];
 
     }
 
