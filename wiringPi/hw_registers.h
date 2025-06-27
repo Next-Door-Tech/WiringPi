@@ -232,5 +232,5 @@ struct [[gnu::packed]] RP1_PWM_registers {
 union PWM_registers {
   union BCM_PWM_registers BCM;  // BCM2835, BCM2836, BCM2837, BCM2711, and RP3A0-based models
   struct RP1_PWM_registers RP1; // RP1-based models
-  volatile uint32_t REG[];      // Individual register access by offset
+  volatile uint32_t REG[0];      // Individual register access by offset
 };
