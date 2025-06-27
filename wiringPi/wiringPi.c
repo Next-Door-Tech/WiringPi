@@ -1523,15 +1523,15 @@ void pwmSetRange (unsigned int range) {
         fprintf (stderr, "PWM range: %u. Current registers: 0x%08X, 0x%08X, 0x%08X, 0x%08X\n", range, PWM_UNION->RP1.CHAN[0].RANGE, PWM_UNION->RP1.CHAN[1].RANGE, PWM_UNION->RP1.CHAN[2].RANGE, PWM_UNION->RP1.CHAN[3].RANGE);
       }
 
-    } else {
+    } else {  // Broadcom Model
 
-      pwm[PWM0_RANGE] = range;
+      PWM_UNION->BCM.CHAN[0].RANGE = range;
       delayMicroseconds (10);
-      pwm[PWM1_RANGE] = range;
+      PWM_UNION->BCM.CHAN[1].RANGE = range;
       delayMicroseconds (10);
 
       if (wiringPiDebug) {
-        fprintf (stderr, "PWM range: %u. Current registers: 0x%08X, 0x%08X\n", range, pwm[PWM0_RANGE], pwm[PWM1_RANGE]);
+        fprintf (stderr, "PWM range: %u. Current registers: 0x%08X, 0x%08X\n", range, PWM_UNION->BCM.CHAN[0].RANGE, PWM_UNION->BCM.CHAN[1].RANGE);
       }
 
     }
@@ -1571,20 +1571,18 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
         fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, PWM_UNION->RP1.CHAN[channel].RANGE);
       }
 
-    } else {
+    } else {  // Broadcom Model
 
       if (channel > 1) {
         fputs("wiringPi: pwmSetRangeChannel channel invalid, ignoring\n", stderr);
         return;
       }
 
-      pwm[PWM0_RANGE] = range;
-      delayMicroseconds(10);
-      pwm[PWM1_RANGE] = range;
+      PWM_UNION->BCM.CHAN[channel].RANGE = range;
       delayMicroseconds(10);
 
       if (wiringPiDebug) {
-        fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, PWM_UNION->RP1.CHAN[channel].RANGE);
+        fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, PWM_UNION->BCM.CHAN[channel].RANGE);
       }
 
     }
