@@ -1619,15 +1619,15 @@ void pwmSetRange (unsigned int range) {
       return;
     }
 
-    int readback = 0x00;
-
     if (piRP1Model()) {
 
       for (size_t i = 0; i < 4; ++i) {
         RP1_PWM->CHAN[i].RANGE = range;
       }
 
-      readback = RP1_PWM->CHAN[0].RANGE;
+      if (wiringPiDebug) {
+        fprintf (stderr, "PWM range: %u. Current registers: 0x%08X, 0x%08X, 0x%08X, 0x%08X\n", range, PWM_UNION->RP1.CHAN[0].RANGE, PWM_UNION->RP1.CHAN[1].RANGE, PWM_UNION->RP1.CHAN[2].RANGE, PWM_UNION->RP1.CHAN[3].RANGE);
+      }
 
     } else {
 
@@ -1635,12 +1635,11 @@ void pwmSetRange (unsigned int range) {
       delayMicroseconds (10);
       pwm[PWM1_RANGE] = range;
       delayMicroseconds (10);
-      readback = pwm[PWM0_RANGE];
 
-    }
+      if (wiringPiDebug) {
+        fprintf (stderr, "PWM range: %u. Current registers: 0x%08X, 0x%08X\n", range, pwm[PWM0_RANGE], pwm[PWM1_RANGE]);
+      }
 
-    if (wiringPiDebug) {
-      fprintf (stderr, "PWM range: %u. Current register: 0x%08X\n", range, readback);
     }
 
   }
@@ -1664,8 +1663,6 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
       return;
     }
 
-    int readback = 0x00;
-
     if (piRP1Model()) {
 
       if (channel > 3) {
@@ -1673,9 +1670,10 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
         return;
       }
 
-      RP1_PWM->CHAN[channel].CTRL_FIELD.BIND = false;
-      RP1_PWM->CHAN[channel].RANGE = range;
-      readback = RP1_PWM->CHAN[channel].RANGE;
+
+      if (wiringPiDebug) {
+        fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, PWM_UNION->RP1.CHAN[channel].RANGE);
+      }
 
     } else {
 
@@ -1688,12 +1686,11 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
       delayMicroseconds(10);
       pwm[PWM1_RANGE] = range;
       delayMicroseconds(10);
-      readback = pwm[PWM0_RANGE];
 
-    }
+      if (wiringPiDebug) {
+        fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, RP1_PWM->CHAN[channel].RANGE);
+      }
 
-    if (wiringPiDebug) {
-      fprintf(stderr, "PWM range: %u. Current register: 0x%08X\n", range, readback);
     }
 
   }
