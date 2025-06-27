@@ -81,6 +81,7 @@
 #include "softPwm.h"
 #include "softTone.h"
 
+#include "hw_registers.h"
 #include "wiringPi.h"
 #include "../version.h"
 #include "wiringPiLegacy.h"
@@ -178,114 +179,7 @@ const unsigned int RP1_PAD_IC_DEFAULT_FROM9 = 0x96; //pull-down, Schmitt
 const unsigned int RP1_PAD_DRIVE_MASK   = 0x00000030;
 const unsigned int RP1_INV_PAD_DRIVE_MASK = ~(RP1_PAD_DRIVE_MASK);
 
-struct [[gnu::packed]] RP1_PWM_struct {
-  union { // GLOBAL_CTRL
-    volatile uint32_t GLOBAL_CTRL;
-    struct {
-      volatile uint32_t CHAN0_EN : 1;
-      volatile uint32_t CHAN1_EN : 1;
-      volatile uint32_t CHAN2_EN : 1;
-      volatile uint32_t CHAN3_EN : 1;
-      volatile uint32_t : 27;
-      volatile uint32_t SET_UPDATE : 1;
-    } GLOBAL_CTRL_FIELD;
-  };
-  union { // FIFO_CTRL
-    volatile uint32_t FIFO_CTRL;
-    struct {
-      volatile const uint32_t LEVEL : 5;
-      volatile uint32_t FLUSH : 1;
-      volatile const uint32_t FLUSH_DONE : 1;
-      volatile uint32_t : 4;
-      volatile uint32_t THRESHOLD : 5;
-      volatile uint32_t DWELL_TIME : 5;
-      volatile uint32_t : 10;
-      volatile uint32_t DREQ_EN : 1;
-    } FIFO_CTRL_FIELD;
-  };
-  volatile uint32_t COMMON_RANGE;
-  volatile uint32_t COMMON_DUTY;
-  volatile uint32_t DUTY_FIFO;
-  struct RP1_PWM_CHAN {
-    union {
-      volatile uint32_t CTRL;
-      struct {
-        volatile uint32_t MODE : 3;           // PWM generation mode
-        volatile uint32_t INVERT : 1;
-        volatile uint32_t BIND : 1;           // Bind Channel to the common_range and common_duty/duty_fifo registers
-        volatile uint32_t USEFIFO : 1;
-        volatile uint32_t SDM : 1;
-        volatile uint32_t DITHER : 1;
-        volatile uint32_t FIFO_POP_MASK : 1;
-        volatile uint32_t : 3;
-        volatile uint32_t SDM_BANDWIDTH : 4;
-        volatile uint32_t SDM_BIAS : 16;
-      } CTRL_FIELD;
-    };
-    volatile uint32_t RANGE;
-    volatile uint32_t PHASE;
-    volatile uint32_t DUTY;
-  } CHAN[4];
-
-  union { // INTR : Raw Interrupts
-    volatile uint32_t INTR;
-    struct {
-      volatile uint32_t FIFO_UNDERFLOW    : 1;
-      volatile uint32_t FIFO_OVERFLOW     : 1;
-      volatile const uint32_t FIFO_EMPTY  : 1;
-      volatile const uint32_t FIFO_FULL   : 1;
-      volatile const uint32_t DREQ_ACTIVE : 1;
-      volatile uint32_t CHAN0_RELOAD      : 1;
-      volatile uint32_t CHAN1_RELOAD      : 1;
-      volatile uint32_t CHAN2_RELOAD      : 1;
-      volatile uint32_t CHAN3_RELOAD      : 1;
-    } INTR_FIELD;
-  };
-  union { // INTE : Interrupt Enable
-    volatile uint32_t INTE;
-    struct {
-      volatile uint32_t FIFO_UNDERFLOW  : 1;
-      volatile uint32_t FIFO_OVERFLOW   : 1;
-      volatile uint32_t FIFO_EMPTY      : 1;
-      volatile uint32_t FIFO_FULL       : 1;
-      volatile uint32_t DREQ_ACTIVE     : 1;
-      volatile uint32_t CHAN0_RELOAD    : 1;
-      volatile uint32_t CHAN1_RELOAD    : 1;
-      volatile uint32_t CHAN2_RELOAD    : 1;
-      volatile uint32_t CHAN3_RELOAD    : 1;
-    } INTE_FIELD;
-  };
-  union { // INTF : Interrupt Force
-    volatile uint32_t INTF;
-    struct {
-      volatile uint32_t FIFO_UNDERFLOW  : 1;
-      volatile uint32_t FIFO_OVERFLOW   : 1;
-      volatile uint32_t FIFO_EMPTY      : 1;
-      volatile uint32_t FIFO_FULL       : 1;
-      volatile uint32_t DREQ_ACTIVE     : 1;
-      volatile uint32_t CHAN0_RELOAD    : 1;
-      volatile uint32_t CHAN1_RELOAD    : 1;
-      volatile uint32_t CHAN2_RELOAD    : 1;
-      volatile uint32_t CHAN3_RELOAD    : 1;
-    } INTF_FIELD;
-  };
-  union { // INTS : Interrupt status after masking & forcing
-    volatile const uint32_t INTS;
-    struct {
-      volatile const uint32_t FIFO_UNDERFLOW  : 1;
-      volatile const uint32_t FIFO_OVERFLOW   : 1;
-      volatile const uint32_t FIFO_EMPTY      : 1;
-      volatile const uint32_t FIFO_FULL       : 1;
-      volatile const uint32_t DREQ_ACTIVE     : 1;
-      volatile const uint32_t CHAN0_RELOAD    : 1;
-      volatile const uint32_t CHAN1_RELOAD    : 1;
-      volatile const uint32_t CHAN2_RELOAD    : 1;
-      volatile const uint32_t CHAN3_RELOAD    : 1;
-    } INTS_FIELD;
-  };
-};
-
-#define RP1_PWM ((struct RP1_PWM_struct *)pwm)
+#define PWM_UNION ((union PWM_registers *)pwm)
 
 const unsigned int RP1_PWM0_GLOBAL_CTRL  = 0;
 const unsigned int RP1_PWM0_FIFO_CTRL    = 1;
@@ -1622,7 +1516,7 @@ void pwmSetRange (unsigned int range) {
     if (piRP1Model()) {
 
       for (size_t i = 0; i < 4; ++i) {
-        RP1_PWM->CHAN[i].RANGE = range;
+        PWM_UNION->RP1.CHAN[i].RANGE = range;
       }
 
       if (wiringPiDebug) {
@@ -1670,6 +1564,8 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
         return;
       }
 
+      PWM_UNION->RP1.CHAN[channel].CTRL_FIELD.BIND = false;
+      PWM_UNION->RP1.CHAN[channel].RANGE = range;
 
       if (wiringPiDebug) {
         fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, PWM_UNION->RP1.CHAN[channel].RANGE);
@@ -1688,7 +1584,7 @@ void pwmSetRangeChannel (unsigned int range, unsigned int channel) {
       delayMicroseconds(10);
 
       if (wiringPiDebug) {
-        fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, RP1_PWM->CHAN[channel].RANGE);
+        fprintf (stderr, "PWM range: %u for channel %u. Current register: 0x%08X\n", range, channel, PWM_UNION->RP1.CHAN[channel].RANGE);
       }
 
     }
